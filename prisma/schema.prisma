@@ -13,6 +13,101 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model temp {
-  name String @id()
+model user {
+  id           String         @id() @default(uuid())
+  username     String
+  email        String
+  password     String
+  token        String?
+  profile      String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now())
+  isVerified   Boolean        @default(false)
+  order        order[]
+  cart         cart[]
+  transactions transactions[]
+}
+
+model admin {
+  id        String    @id() @default(uuid())
+  username  String
+  email     String
+  password  String
+  token     String?
+  profile   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  products  product[]
+}
+
+model category {
+  id          String   @id() @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+
+  products product[]
+}
+
+model product {
+  id          String    @id() @default(uuid())
+  title       String
+  description String
+  categoryId  String
+  addedBy     String
+  category    category? @relation(fields: [categoryId], references: [id])
+  admin       admin?    @relation(fields: [adminId], references: [id])
+  adminId     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+
+  order order[]
+  cart  cart[]
+}
+
+model order {
+  id              String   @id() @default(uuid())
+  product         product  @relation(fields: [productId], references: [id])
+  productId       String
+  orderId         String
+  amount          Int
+  finalAmout      Int
+  discount        Int?
+  delivery        Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+  user            user     @relation(fields: [userId], references: [id])
+  userId          String
+  shippingAddress String
+}
+
+model cart {
+  id         String   @id() @default(uuid())
+  product    product  @relation(fields: [productId], references: [id])
+  productId  String
+  user       user     @relation(fields: [userId], references: [id])
+  userId     String
+  amount     Int
+  finalAmout Int
+  discount   Int?
+  delivery   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+}
+
+model transactions {
+  id            String   @id() @default(uuid())
+  paymentToken  String
+  orderId       String
+  amount        Int
+  finalAmout    Int
+  discount      Int?
+  delivery      Int
+  paymentMethod String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  user          user?    @relation(fields: [userId], references: [id])
+  userId        String?
+  status        String
 }
