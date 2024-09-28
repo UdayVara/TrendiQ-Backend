@@ -83,6 +83,7 @@ export class AuthService {
             statusCode: 201,
             message: 'Admin Signin Successfully.',
             token,
+            user:checkUser
           };
         }else{
             throw new UnauthorizedException("Invalid Password")
