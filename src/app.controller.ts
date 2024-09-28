@@ -8,11 +8,6 @@ export class AppController {
 
   @Get()
   async getHello(): Promise<string> {
-    const res = await this.prisma.temp.create({
-      data:{
-        name:"Test"
-      }
-    })
     return this.appService.getHello();
   }
 }
