@@ -31,16 +31,14 @@ export class CategoryService {
 
   async findAll() {
     try {
-      const categories = await this.prisma.category.findMany({})
+      const categories = await this.prisma.category.findMany({orderBy:{
+        updatedAt:"asc"
+      }})
 
       return {statusCode:200,message:"Categories Fetched Successfully",categories:categories}
     } catch (error) {
       throw new InternalServerErrorException("Unexpected Error Occured")
     }
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
   }
 
   async update(updateCategoryDto: UpdateCategoryDto) {
