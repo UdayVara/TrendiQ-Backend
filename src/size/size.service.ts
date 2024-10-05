@@ -54,7 +54,7 @@ export class SizeService {
     }
   }
 
-  async update(id: number, updateSizeDto: UpdateSizeDto) {
+  async update(updateSizeDto: UpdateSizeDto) {
     try {
       const res = await this.prisma.size.update({
         where: {
