@@ -18,7 +18,7 @@ export class SizeController {
   }
 
 
-  @Patch(':id')
+  @Patch()
   update(@Param('id') id: string, @Body() updateSizeDto: UpdateSizeDto) {
     return this.sizeService.update(+id, updateSizeDto);
   }
