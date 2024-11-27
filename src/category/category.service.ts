@@ -63,11 +63,13 @@ export class CategoryService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string[]) {
     try {
-      const res = await this.prisma.category.delete({
+      const res = await this.prisma.category.deleteMany({
         where:{
-          id:id
+          id:{
+            in:id
+          }
         }
       })
 

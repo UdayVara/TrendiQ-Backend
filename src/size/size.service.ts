@@ -83,12 +83,15 @@ export class SizeService {
     }
   }
 
-  async remove(id: string) {
+  async   remove(id: string[]) {
     try {
-      const res = await this.prisma.size.delete({
-        where: {
-          id: id,
-        },
+      const res = await this.prisma.size.deleteMany({
+        where:{
+          id:{
+            in:id
+          },
+          
+        }
       });
 
       if (res) {

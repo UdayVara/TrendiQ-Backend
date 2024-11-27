@@ -85,10 +85,10 @@ export class SizeController {
   @ApiOkResponse({
     example: {
       statusCode: 201,
-      message: 'Size Deleted Successfully.',
-    },
+      message: 'Deleted Sizes Successfully',
+    }
   })
   remove(@Param('id') id: string) {
-    return this.sizeService.remove(id);
+    return this.sizeService.remove(id.split(",") || []);
   }
 }

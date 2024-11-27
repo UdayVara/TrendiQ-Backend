@@ -78,6 +78,6 @@ export class EnviromentController {
     }
   })
   remove(@Param('id') id: string,@Request() req) {
-    return this.enviromentService.remove(id,req.user.id);
+    return this.enviromentService.remove(id.split(",") || [],req.user.id);
   }
 }

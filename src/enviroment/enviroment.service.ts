@@ -61,12 +61,14 @@ export class EnviromentService {
     }
   }
 
-  async remove(id: string,userId:string) {
+  async remove(id: string[],user:string) {
     try {
-      const deletedEnviroment = await this.prisma.enviroment.delete({
+      const deletedEnviroment = await this.prisma.enviroment.deleteMany({
         where:{
-          id:id,
-          userId:userId
+          id:{
+            in:id
+          },
+          userId:user
         }
       })
 

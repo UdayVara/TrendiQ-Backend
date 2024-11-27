@@ -72,12 +72,12 @@ export class CategoryController {
 
   @Delete(':id')
   @ApiOkResponse({
-    example:{
-      statusCode:201,
-      message:"Category Deleted Successfully"
+    example: {
+      statusCode: 201,
+      message: 'Deleted Sizes Successfully',
     }
   })
   remove(@Param('id') id: string) {
-    return this.categoryService.remove(id);
+    return this.categoryService.remove(id.split(",") || []);
   }
 }
