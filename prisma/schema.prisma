@@ -70,12 +70,12 @@ model product {
   categoryId  String
   sizeId      String
   size        size      @relation(fields: [sizeId], references: [id])
-  addedBy     String
   category    category? @relation(fields: [categoryId], references: [id])
   admin       admin?    @relation(fields: [adminId], references: [id])
   adminId     String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now())
+  imageUrl    String?
   order       order[]
   cart        cart[]
 
