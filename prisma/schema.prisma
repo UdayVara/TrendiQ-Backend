@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -53,29 +53,33 @@ model category {
 }
 
 model size {
-  id          String   @id() @default(uuid())
-  name        String   @unique()
+  id          String    @id() @default(uuid())
+  name        String    @unique()
   description String?
-  category    category @relation(fields: [categoryId], references: [id])
+  category    category  @relation(fields: [categoryId], references: [id])
   categoryId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+  product     product[]
 }
 
 model product {
   id          String    @id() @default(uuid())
-  title       String
+  title       String    @unique()
   description String
   categoryId  String
+  sizeId      String
+  size        size      @relation(fields: [sizeId], references: [id])
   addedBy     String
   category    category? @relation(fields: [categoryId], references: [id])
   admin       admin?    @relation(fields: [adminId], references: [id])
   adminId     String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now())
+  order       order[]
+  cart        cart[]
 
-  order order[]
-  cart  cart[]
+  @@unique([title, categoryId, sizeId])
 }
 
 model order {
