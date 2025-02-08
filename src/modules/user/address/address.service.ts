@@ -30,11 +30,40 @@ export class AddressService {
     }
   }
 
+  async updateDefault(addressId: string, userId: string) {
+    try {
+      await this.prisma.address.updateMany({
+        where: {
+          userId: userId,
+        },
+        data: {
+          isDefault: false,
+        },
+      })
+
+      await this.prisma.address.update({
+        where: {
+          id: addressId,
+          userId: userId,
+        },
+        data: {
+          isDefault: true,
+        },
+      });
+      return { statusCode: 201, message: 'Default Address Updated Successfully' };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message || "Unexpected Error Occured");
+    }
+  }
+
   async findAll(userId: string) {
     try {
       const res = await this.prisma.address.findMany({
         where: {
           userId: userId,
+        },
+        orderBy: {
+         isDefault:"desc"
         },
       });
 
@@ -56,7 +85,8 @@ export class AddressService {
           id: addressId,
           userId: userId,
         },data:{
-          ...rest
+          ...rest,
+          updatedAt: new Date()
         }
       });
 
@@ -78,7 +108,7 @@ export class AddressService {
         where: {
           id: id,
           userId: userId,
-        },
+        },  
       });
 
       if (res) {

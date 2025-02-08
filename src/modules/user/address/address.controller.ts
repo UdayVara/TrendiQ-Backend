@@ -14,6 +14,11 @@ export class AddressController {
     return this.addressService.create(createAddressDto,req.user.id);
   }
 
+  @Patch("/default/:id")
+  updateDefault(@Param('id') id: string,@Request() req : any) {
+    return this.addressService.updateDefault(id,req.user.id);
+  }
+
   @Get()
   findAll(@Request() req : any) {
     return this.addressService.findAll(req.user.d);
