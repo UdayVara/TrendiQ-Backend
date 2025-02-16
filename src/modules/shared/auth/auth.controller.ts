@@ -1,10 +1,11 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AdminSignupDto } from './dto/admin-signup.dto';
 import { AdminSigninDto } from './dto/admin-signin.dto';
 import { ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import {  UserSignupDto } from './dto/user-signup.dto';
 import { UserSigninDto } from './dto/user-sigin.dto';
+import { AuthGuard } from 'src/guards/authguard/adminauth.guard';
 
 @ApiTags('Auth')
 @Controller()
@@ -58,4 +59,12 @@ export class AuthController {
   async userSignin(@Body() userSigninBody: UserSigninDto) {
     return this.authService.userSignin(userSigninBody);
   }
+  
+  @Get("/user")
+  @UseGuards(AuthGuard)
+  async getUserDetails(@Query("userId",ParseUUIDPipe) userId: string) {
+    return this.authService.getUserDetails(userId);
+  }
+
+  
 }

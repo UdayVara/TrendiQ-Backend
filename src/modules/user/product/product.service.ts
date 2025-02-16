@@ -42,12 +42,37 @@ export class ProductService {
         take: +query.size,
       });
 
+      console.log(query.userEmail,"Email")
+      if(query.userEmail){
+        const wishlist = await this.prisma.wishlist.findMany({
+          where: {
+            user:{
+              email:query.userEmail
+            }
+          },
+          include: {
+            product: {
+              select:{
+                id:true
+              }
+            },
+          },
+        });
+        console.log("wishilist",wishlist)
+        return {
+          statusCode: 200,
+          message: 'Products Fetched Successfully',
+          data: products,
+          wishlist:wishlist
+        };
+      }
       return {
         statusCode: 200,
         message: 'Products Fetched Successfully',
         data: products,
       };
     } catch (error) {
+      console.log(error)
       throw new InternalServerErrorException(
         error?.message || 'Internal Server Error',
       );
@@ -56,7 +81,7 @@ export class ProductService {
 
   async findTrendingProducts() {
     try {
-      const res = await this.prisma.product.findMany({});
+      const res = await this.prisma.product.findMany({include:{product_inventory:true,category:true},where:{isTrending:true}});
 console.log(res)
       return {
         statusCode: 200,

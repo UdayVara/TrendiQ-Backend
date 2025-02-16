@@ -9,8 +9,10 @@ import { SizeModule } from './modules/admin/size/size.module';
 import { ProductModule } from './modules/admin/product/product.module';
 import { CartModule } from './modules/user/cart/cart.module';
 import { RouterModule } from '@nestjs/core';
-import {ProductModule as UserProductModule} from  "./modules/user/product/product.module"
+import {UserProductModule} from  "./modules/user/product/product.module"
 import { AddressModule } from './modules/user/address/address.module';
+import { StripeModule } from './modules/user/stripe/stripe.module';
+import { WishlistModule } from './modules/user/wishlist/wishlist.module';
 @Module({
   imports: [
     CommonModule,
@@ -21,6 +23,8 @@ import { AddressModule } from './modules/user/address/address.module';
     CartModule,
     UserProductModule,
     AddressModule,
+    StripeModule,
+    WishlistModule,
     RouterModule.register([
       {
         path: 'admin',
@@ -44,7 +48,7 @@ import { AddressModule } from './modules/user/address/address.module';
         ],
       },
       {
-        path:"/user",
+        path:"user",
         children:[
           {
             path:"/",
@@ -57,6 +61,14 @@ import { AddressModule } from './modules/user/address/address.module';
           {
             path:"/",
             module:AddressModule
+          },
+          {
+            path:"/",
+            module:StripeModule
+          },
+          {
+            path:"/",
+            module:WishlistModule
           }
         ]
       }

@@ -6,8 +6,9 @@ import { getProductDto } from './dto/getProduct.dto';
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @Get()
+  @Get("/")
   async getAllProducts(@Query() query: getProductDto) {
+    console.log("APi Called")
     return await this.productService.findAllProducts(query);
   }
 

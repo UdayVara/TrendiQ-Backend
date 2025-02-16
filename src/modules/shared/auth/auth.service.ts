@@ -106,7 +106,7 @@ export class AuthService {
           email: userSignUpBody.email,
         },
       });
-console.log(res,"res")
+      console.log(res, 'res');
       if (res) {
         throw new BadRequestException('User With Email Already Exists');
       } else {
@@ -130,7 +130,7 @@ console.log(res,"res")
             statusCode: 201,
             message: 'User Signup Successfully.',
             token,
-            user:newUser
+            user: newUser,
           };
         }
       }
@@ -148,7 +148,7 @@ console.log(res,"res")
           email: userSigninBody.email,
         },
       });
-console.log(res)
+      console.log(res);
       if (!res) {
         throw new BadRequestException('User With Email Does Not Exists');
       } else {
@@ -168,14 +168,40 @@ console.log(res)
             statusCode: 201,
             message: 'User Signin Successfully.',
             token,
-            user:res
+            user: res,
           };
-        }else{
-          throw new InternalServerErrorException("Invalid Password")
+        } else {
+          throw new InternalServerErrorException('Invalid Password');
         }
       }
     } catch (error) {
-      console.log("Auth Error : ",error)
+      console.log('Auth Error : ', error);
+      throw new InternalServerErrorException(
+        error.message || 'Internal Server Error',
+      );
+    }
+  }
+
+  async getUserDetails(userId: string) {
+    try {
+      const res = await this.prisma.user.findFirst({
+        where: {
+          id: userId,
+        },
+        include: {
+          order: true,
+        },
+      });
+      if (res) {
+        return {
+          statusCode: 200,
+          message: 'User Details Fetched Successfully.',
+          data: res,
+        };
+      } else {
+        throw new BadRequestException('User Does Not Exists');
+      }
+    } catch (error) {
       throw new InternalServerErrorException(
         error.message || 'Internal Server Error',
       );

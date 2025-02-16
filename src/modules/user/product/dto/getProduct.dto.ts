@@ -1,5 +1,5 @@
 import { gender } from "@prisma/client";
-import { IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsEmail, IsEnum, IsOptional, IsString } from "class-validator";
 
 export class getProductDto {
     @IsString()
@@ -18,5 +18,10 @@ export class getProductDto {
 
     @IsString()
     @IsOptional()
+    @IsEnum(gender)
     gender:string;
+
+    @IsOptional()
+    @IsEmail()
+    userEmail:string;
 }

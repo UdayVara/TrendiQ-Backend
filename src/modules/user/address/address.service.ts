@@ -61,6 +61,7 @@ export class AddressService {
       const res = await this.prisma.address.findMany({
         where: {
           userId: userId,
+          isDeleted: false,
         },
         orderBy: {
          isDefault:"desc"
@@ -104,11 +105,14 @@ export class AddressService {
 
   async remove(id: string, userId: string) {
     try {
-      const res = await this.prisma.address.delete({
+      const res = await this.prisma.address.update({
         where: {
           id: id,
           userId: userId,
-        },  
+        },      
+        data: {
+          isDeleted: true
+        }
       });
 
       if (res) {
