@@ -1,5 +1,4 @@
-import { gender } from "@prisma/client";
-import { IsEmail, IsEnum, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString } from "class-validator";
 
 export class getProductDto {
     @IsString()
@@ -18,7 +17,6 @@ export class getProductDto {
 
     @IsString()
     @IsOptional()
-    @IsEnum(gender)
     gender:string;
 
     @IsOptional()

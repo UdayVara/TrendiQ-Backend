@@ -10,9 +10,18 @@ import { getProductDto } from './dto/getProduct.dto';
 export class ProductService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAllProducts(query: getProductDto) {
+  async findAllProducts(query: getProductDto,userId?:string) {
     try {
       const AND = [];
+      let wishlist = {}
+
+      if(userId){
+        wishlist =  {
+          where:{
+            userId:userId
+          }
+        }
+      }
       if (query.categoryId) {
         AND.push({ categoryId: query.categoryId });
       }
@@ -34,6 +43,7 @@ export class ProductService {
         include: {
           category: true,
           product_inventory: true,
+          wishlist:{...wishlist}
         },
         orderBy: {
           createdAt: 'desc',

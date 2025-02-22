@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Request } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { getProductDto } from './dto/getProduct.dto';
 
@@ -7,9 +7,9 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Get("/")
-  async getAllProducts(@Query() query: getProductDto) {
+  async getAllProducts(@Query() query: getProductDto,@Request() req: any) {
     console.log("APi Called")
-    return await this.productService.findAllProducts(query);
+    return await this.productService.findAllProducts(query,req?.user?.id);
   }
 
   @Get("/:name")

@@ -46,9 +46,9 @@ export class WishlistService {
           userId: userId,
         },
       });
-
+      console.log(res);
       if (res) {
-        return { statusCode: 200, message: 'Item Deleted Successfully' };
+        return { statusCode: 201, message: 'Item Deleted Successfully' };
       } else {
         throw new InternalServerErrorException('Failed to Delete');
       }
