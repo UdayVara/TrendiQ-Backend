@@ -9,7 +9,7 @@ import { MulterModule } from '@nestjs/platform-express';
   imports: [
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET,
+      secret: process.env.JWT_SECRET || "randomJWTSecret",
     }),
     MulterModule.register({dest:"./uploads"}),
   ],
