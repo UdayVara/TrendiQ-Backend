@@ -29,6 +29,7 @@ export class SizeService {
         return { status: 500, message: 'Unexpected Error Occured.' };
       }
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException('Unexpected Error Occured');
     }
   }
