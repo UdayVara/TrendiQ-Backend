@@ -20,6 +20,5 @@ export class getProductDto {
     gender:string;
 
     @IsOptional()
-    @IsEmail()
     userEmail:string;
 }
