@@ -68,7 +68,7 @@ model category {
 
 model size {
   id                String              @id() @default(uuid())
-  name              String              
+  name              String
   description       String?
   category          category            @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   categoryId        String
@@ -76,7 +76,7 @@ model size {
   updatedAt         DateTime            @default(now())
   product_inventory product_inventory[]
 
-  @@unique([name,categoryId])
+  @@unique([name, categoryId])
 }
 
 model product {
@@ -100,8 +100,17 @@ model product {
   admin             admin               @relation(fields: [adminId], references: [id], onDelete: NoAction)
   product_inventory product_inventory[]
   wishlist          wishlist[]
+  product_images    product_images[]
 
   @@unique([title, categoryId, color])
+}
+
+model product_images {
+  id        String  @id() @default(uuid())
+  imageUrl  String
+  publicId  String
+  productId String
+  product   product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model product_inventory {
@@ -167,11 +176,11 @@ model cart {
 }
 
 model wishlist {
-  id        String  @id() @default(uuid())
+  id        String   @id() @default(uuid())
   productId String
-  product   product @relation(fields: [productId], references: [id],onDelete: Cascade)
+  product   product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   userId    String
-  user      user    @relation(fields: [userId], references: [id],onDelete: Cascade)
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }

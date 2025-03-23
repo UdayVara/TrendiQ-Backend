@@ -17,11 +17,11 @@ export class ProductService {
   ) {}
   async create(
     createProductDto: CreateProductDto,
-    file: Express.Multer.File,
+    file: Express.Multer.File[],
     userId: string,
   ) {
     try {
-      const result = await this.cloudinaryService.uploadImage(file);
+      const result = await this.cloudinaryService.uploadMultipleImages(file);
       const res = await this.prisma.product.create({
         data: {
           title: createProductDto.title,
@@ -29,8 +29,8 @@ export class ProductService {
           markupDescription:createProductDto.markupDescription,
           categoryId: createProductDto.categoryId,
           adminId: userId,
-          imageUrl: result.secure_url,
-          publicId: result.public_id,
+          imageUrl: result[0].secure_url,
+          publicId: result[0].public_id,
           gender: createProductDto.gender as gender,
           isTrending:
             createProductDto.isTrending == 'true' ? true : false || false,
@@ -49,6 +49,14 @@ export class ProductService {
             sizeId: createProductDto.sizeId,
           },
         });
+
+        await this.prisma.product_images.createMany({
+          data: result.map((item) => ({
+            productId: res.id,
+            imageUrl: item.secure_url,
+            publicId: item.public_id,
+          })),
+        })
         if (res2) {
           return {
             statusCode: 201,
@@ -56,7 +64,7 @@ export class ProductService {
           };
         }
       } else {
-        await this.cloudinaryService.deleteImage(result.public_id);
+        await this.cloudinaryService.deleteMultipleImages(result.map((item)=> item.public_id));
         return { statusCode: 500, message: 'Unexpected Error Occured' };
       }
     } catch (error) {
@@ -212,14 +220,15 @@ export class ProductService {
 
   async update(
     updateProductDto: UpdateProductDto,
-    file: Express.Multer.File,
+    file: Express.Multer.File[],
     userId: string,
   ) {
     try {
       let result;
-      if (file) {
-        result = await this.cloudinaryService.uploadImage(file);
+      if (file.length != 0) {
+        result = await this.cloudinaryService.uploadMultipleImages(file);
       }
+      console.log(file,"file")
       const { productId } = updateProductDto;
 
       const createBody: any = {
@@ -234,9 +243,25 @@ export class ProductService {
           updateProductDto.isTrending == 'true' ? true : false || false,
       };
       console.log(file);
-      if (file) {
-        createBody.imageUrl = result.secure_url;
-        createBody.publicId = result.public_id;
+      if (file.length != 0) {
+        createBody.imageUrl = result[0].secure_url;
+        createBody.publicId = result[0].public_id;
+
+        await this.prisma.product_images.deleteMany({
+          where:{
+            productId:productId
+          }
+        })
+
+        await this.prisma.product_images.createMany({
+          data: result.map((item) => {
+            return {
+              imageUrl: item.secure_url,
+              publicId: item.public_id,
+              productId: productId
+            }
+          })
+        })
       }
       const res = await this.prisma.product.update({
         where: {

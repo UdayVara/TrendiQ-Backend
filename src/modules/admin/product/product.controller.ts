@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseInterceptors,
-  UploadedFile,
   BadRequestException,
   Request,
   UseGuards,
@@ -15,12 +14,13 @@ import {
   HttpStatus,
   Query,
   Put,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from 'src/guards/authguard/adminauth.guard';
 import { UpdateStatusDto } from './dto/updateStatus.dto';
 import { FetchForUser } from './dto/fetch-by-user.dto';
@@ -35,27 +35,27 @@ export class ProductController {
   ) {}
 
   @UseGuards(AuthGuard)
-  @Post('/')
-  @UseInterceptors(FileInterceptor('file'))
-  async createFile(
-    @Body() createProductDto: CreateProductDto,
-    @UploadedFile(
-      'file',
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({ fileType: /(jpeg|png|svg|jpg|webp)$/ })
-        .addMaxSizeValidator({ maxSize: 1024 * 1024 * 5 })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        }),
-    )
-    file: Express.Multer.File,
-    @Request() req: any,
-  ) {
-    if (!file) {
-      throw new BadRequestException('File is Required');
-    }
-    return this.productService.create(createProductDto, file, req.user.id);
+@Post('/')
+@UseInterceptors(FilesInterceptor('file', 10)) // 10 = max number of files allowed
+async createFile(
+  @Body() createProductDto: CreateProductDto,
+  @UploadedFiles(
+    new ParseFilePipeBuilder()
+      .addFileTypeValidator({ fileType: /(jpeg|png|svg|jpg|webp)$/ })
+      .addMaxSizeValidator({ maxSize: 1024 * 1024 * 5 }) // 5MB max size per file
+      .build({
+        fileIsRequired: true,
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+  )
+  files: Express.Multer.File[],
+  @Request() req: any,
+) {
+  if (!files || files.length === 0) {
+    throw new BadRequestException('At least one file is required');
   }
+  return this.productService.create(createProductDto, files, req.user.id);
+}
 
  
   @UseGuards(AuthGuard)
@@ -78,16 +78,15 @@ export class ProductController {
 
   @UseGuards(AuthGuard)
   @Patch('')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('file',10))
   update(
     @Body() updateProductDto: UpdateProductDto,
     
     @Request()
     req: any,
-    @UploadedFile(
-      'file',
+    @UploadedFiles(
       new ParseFilePipeBuilder()
-        .addFileTypeValidator({ fileType: /(jpeg|png|svg|jpg)$/ })
+        .addFileTypeValidator({ fileType: /(jpeg|png|svg|jpg|webp)$/ })
         .addMaxSizeValidator({ maxSize: 1024 * 1024 * 5 })
         .build({
           fileIsRequired:false,
@@ -96,9 +95,10 @@ export class ProductController {
         
         }),
     )
-    file?: Express.Multer.File,
+    file?: Express.Multer.File[],
   ) {
-    return this.productService.update(updateProductDto, file ||null, req.user.id);
+    
+    return this.productService.update(updateProductDto, file || null, req.user.id);
   }
 
   @UseGuards(AuthGuard)

@@ -114,6 +114,7 @@ console.log(res)
         },
         include: {
           category: true,
+          product_images:true,
           product_inventory: {
             include: {
               size: true,

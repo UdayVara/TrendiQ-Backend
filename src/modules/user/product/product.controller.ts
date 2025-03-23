@@ -8,7 +8,6 @@ export class ProductController {
 
   @Get("/")
   async getAllProducts(@Query() query: getProductDto,@Request() req: any) {
-    console.log("APi Called")
     return await this.productService.findAllProducts(query,req?.user?.id);
   }
 
