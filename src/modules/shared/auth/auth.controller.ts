@@ -1,4 +1,4 @@
-import { Body, Controller, Get, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get,  Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AdminSignupDto } from './dto/admin-signup.dto';
 import { AdminSigninDto } from './dto/admin-signin.dto';
@@ -60,10 +60,10 @@ export class AuthController {
     return this.authService.userSignin(userSigninBody);
   }
   
-  @Get("/user")
+  @Get("/user/get-user-details")
   @UseGuards(AuthGuard)
-  async getUserDetails(@Query("userId",ParseUUIDPipe) userId: string) {
-    return this.authService.getUserDetails(userId);
+  async getUserDetails(@Req() req: any) {
+    return this.authService.getUserDetails(req.user.id);
   }
 
   
