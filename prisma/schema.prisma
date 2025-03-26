@@ -22,7 +22,9 @@ enum gender {
 enum orderStatus {
   pending
   confirmed
+  packaed
   shipped
+  outForDelivery
   delivered
 }
 
@@ -75,6 +77,7 @@ model size {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @default(now())
   product_inventory product_inventory[]
+  order             order[]
 
   @@unique([name, categoryId])
 }
@@ -146,6 +149,9 @@ model order {
   id              String      @id() @default(uuid())
   product         product     @relation(fields: [productId], references: [id], onDelete: NoAction)
   productId       String
+  size            size        @relation(fields: [sizeId], references: [id])
+  sizeId          String
+  color           String
   orderId         String
   amount          Int
   finalAmount     Int

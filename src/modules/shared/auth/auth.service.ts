@@ -188,15 +188,20 @@ export class AuthService {
         where: {
           id: userId,
         },
-        include: {
-          order: true,
-        },
+       
+      });
+
+      const orderCount = await this.prisma.order.groupBy({
+        by: 'orderId',
+        _count:{
+          orderId:true
+        }
       });
       if (res) {
         return {
           statusCode: 200,
           message: 'User Details Fetched Successfully.',
-          data: res,
+          data: {...res,orderCount:orderCount?.length},
         };
       } else {
         throw new BadRequestException('User Does Not Exists');

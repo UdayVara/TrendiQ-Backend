@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import Stripe from 'stripe';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CompletePaymentDto } from './dto/completePayment.dto';
@@ -82,6 +82,8 @@ export class StripeService {
           amount: totalAmount,
           finalAmount: totalAmount + gst,
           quantity: item.quantity,
+          sizeId:item.product_inventory?.sizeId,
+          color:item.product.color,
           productId: item.product.id,
           shippingAddress: completePaymentDto.shippingId,
           userId: userId,
@@ -116,6 +118,20 @@ export class StripeService {
           finalAmount:true,
           createdAt:true,
           status:true,
+          size:{
+            select:{
+              name:true,
+            }
+          },
+          product:{
+            select:{
+              imageUrl:true,
+              title:true,
+              description:true,
+              color:true,
+
+            }
+          },
           address:{
             select:{
               address:true,
@@ -125,11 +141,57 @@ export class StripeService {
         },
        
       });
-      return { statusCode: 200, message: 'Orders Fetched Successfully', data: orders };
+
+      const groupedOrders = Object.values(
+        orders.reduce((acc, order) => {
+            if (!acc[order.orderId]) {
+                acc[order.orderId] = {
+                    orderId: order.orderId,
+                    finalAmount: 0,
+                    createdAt: order.createdAt,
+                    status: order.status,
+                    address: order.address, // Pick the first address
+                    products: []
+                };
+            }
+            acc[order.orderId].finalAmount += order.finalAmount;
+            acc[order.orderId].products.push({
+                size: order.size,
+                price:order.finalAmount,
+                ...order.product
+            });
+    
+            return acc;
+        }, {}))
+      console.log(orders)
+      return { statusCode: 200, message: 'Orders Fetched Successfully', data: groupedOrders };
     } catch (error) {
       throw new InternalServerErrorException(
         error?.message || 'Internal Server Error',
       );
+    }
+  }
+
+
+  async getOrderById(userId:string,orderId:string){
+    try {
+      const res = await this.prisma.order.findFirst({
+        where:{
+          orderId:orderId,
+          userId:userId
+        },
+        include:{
+          product:true,
+        }
+      })
+
+      if(!res){
+        throw new NotFoundException("Order Not Found")
+      }
+
+      return {statusCode:200,message:"Order Fetched Successfully",data:res}
+    } catch (error) {
+      throw new InternalServerErrorException(error.message || "Internal Server Error")
     }
   }
 }
