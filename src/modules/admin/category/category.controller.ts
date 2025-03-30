@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UploadedFile, ParseFilePipeBuilder, HttpStatus, UseInterceptors } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/guards/authguard/adminauth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('category')
 @UseGuards(AuthGuard)
@@ -30,8 +31,19 @@ export class CategoryController {
       newCategory: {},
     },
   })
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.create(createCategoryDto);
+  @UseInterceptors(FileInterceptor('file'))
+  create(@Body() createCategoryDto: CreateCategoryDto,@UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: /(jpeg|png|svg|jpg|webp)$/ })
+        .addMaxSizeValidator({ maxSize: 1024 * 1024 * 5 }) // 5MB max size per file
+        .build({
+          fileIsRequired: true,
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: Express.Multer.File) {
+      
+    return this.categoryService.create(createCategoryDto,file);
   }
 
   @Get()

@@ -6,11 +6,11 @@ import { cloudinary } from 'src/config/cloudinary.config';
 
 @Injectable()
 export class CloudinaryService {
-  async uploadImage(file: Express.Multer.File,productId?:string): Promise<UploadApiResponse> {
+  async uploadImage(file: Express.Multer.File,folder?:string): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { folder: 'trendiq',filename: productId}, // Optional: Specify a folder in Cloudinary
+          { folder: "trendiq" + folder}, // Optional: Specify a folder in Cloudinary
           (error, result) => {
             if (error) return reject(error);
             resolve(result);

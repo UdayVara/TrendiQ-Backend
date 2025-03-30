@@ -17,7 +17,7 @@ export class ProductController {
   }
 
   @Get("/trending/home")
-  async getTrendingProducts() {
-      return await this.productService.findTrendingProducts();
+  async getTrendingProducts(@Query("gender") gender: "male" | "female" | null | undefined) {
+      return await this.productService.findTrendingProducts(gender);
   }
 }

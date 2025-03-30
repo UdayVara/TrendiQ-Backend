@@ -89,9 +89,13 @@ export class ProductService {
     }
   }
 
-  async findTrendingProducts() {
+  async findTrendingProducts(gender : "male" | "female" | null | undefined) {
     try {
-      const res = await this.prisma.product.findMany({include:{product_inventory:true,category:true},where:{isTrending:true}});
+      const where:any = {}
+      if(gender == "male" || gender == "female"){
+        where.gender = gender;
+      }
+      const res = await this.prisma.product.findMany({include:{product_inventory:true,category:true},where:{isTrending:true,...where},orderBy:{createdAt:'desc'}});
 console.log(res)
       return {
         statusCode: 200,

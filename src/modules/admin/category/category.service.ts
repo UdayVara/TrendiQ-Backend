@@ -2,16 +2,21 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 
 @Injectable()
 export class CategoryService {
-  constructor(private prisma: PrismaService) {}
-  async create(createCategoryDto: CreateCategoryDto) {
+  constructor(private prisma: PrismaService, private cloudinary:CloudinaryService) {}
+  async create(createCategoryDto: CreateCategoryDto,file: Express.Multer.File) {
     try {
+      console.log(file)
+      const result = await this.cloudinary.uploadImage(file,"/category");
       const res = await this.prisma.category.create({
         data: {
           name: createCategoryDto.name,
           description: createCategoryDto.description,
+          imageUrl: result.secure_url,
+          publicId: result.public_id,
         },
       });
 
@@ -22,9 +27,11 @@ export class CategoryService {
           category: res,
         };
       } else {
+        await this.cloudinary.deleteImage(result.public_id);
         return { status: 500, message: 'Unexpected Error Occured.' };
       }
     } catch (error) {
+      console.log("Category Add",error)
       throw new InternalServerErrorException('Unexpected Error Occured');
     }
   }
