@@ -14,6 +14,7 @@ import { AddressModule } from './modules/user/address/address.module';
 import { StripeModule } from './modules/user/stripe/stripe.module';
 import { WishlistModule } from './modules/user/wishlist/wishlist.module';
 import {CategoryModule as UserCategoryModule} from "./modules/user/category/category.module"
+import { BannerModule } from './modules/admin/banner/banner.module';
 @Module({
   imports: [
     CommonModule,
@@ -27,6 +28,7 @@ import {CategoryModule as UserCategoryModule} from "./modules/user/category/cate
     StripeModule,
     WishlistModule,
     UserCategoryModule,
+    BannerModule,
     RouterModule.register([
       {
         path: 'admin',
@@ -50,6 +52,10 @@ import {CategoryModule as UserCategoryModule} from "./modules/user/category/cate
           {
             path: '/',
             module: CategoryModule,
+          },
+          {
+            path: '/',
+            module: BannerModule,
           },
         ],
       },

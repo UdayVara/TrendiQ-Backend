@@ -57,6 +57,17 @@ model admin {
   enviroment enviroment[]
 }
 
+model banner {
+  id              String   @id() @default(uuid())
+  mobileImage     String
+  defaultImage    String
+  mobilePublicId  String
+  defaultPublicId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+  gender          String
+}
+
 model category {
   id          String    @id() @default(uuid())
   name        String

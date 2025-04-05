@@ -68,7 +68,6 @@ export class ProductService {
             },
           },
         });
-        console.log("wishilist",wishlist)
         return {
           statusCode: 200,
           message: 'Products Fetched Successfully',
@@ -96,10 +95,16 @@ export class ProductService {
         where.gender = gender;
       }
       const res = await this.prisma.product.findMany({include:{product_inventory:true,category:true},where:{isTrending:true,...where},orderBy:{createdAt:'desc'}});
-console.log(res)
+
+      const banner = await this.prisma.banner.findMany({
+        where:{
+          gender:gender
+        }
+      })
       return {
         statusCode: 200,
         data: res,
+        banner:banner,
         message: 'Products Fetched Successfully',
       };
     } catch (error) {
