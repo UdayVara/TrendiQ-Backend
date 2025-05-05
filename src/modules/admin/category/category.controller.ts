@@ -78,8 +78,9 @@ export class CategoryController {
       message:"Category Updated Successfully"
     }
   })
-  update( @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoryService.update(updateCategoryDto);
+  @UseInterceptors(FileInterceptor('file'))
+  update( @Body() updateCategoryDto: UpdateCategoryDto,@UploadedFile() file: Express.Multer.File | null) {
+    return this.categoryService.update(updateCategoryDto,file);
   }
 
   @Delete(':id')

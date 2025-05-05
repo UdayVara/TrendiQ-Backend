@@ -17,6 +17,7 @@ export class CategoryService {
           description: createCategoryDto.description,
           imageUrl: result.secure_url,
           publicId: result.public_id,
+          gender: createCategoryDto.gender,
         },
       });
 
@@ -48,15 +49,29 @@ export class CategoryService {
     }
   }
 
-  async update(updateCategoryDto: UpdateCategoryDto) {
+  async update(updateCategoryDto: UpdateCategoryDto,file:Express.Multer.File | null) {
     try {
+      if(file){
+
+
+      const cat = await this.prisma.category.findUnique({
+        where:{
+          id:updateCategoryDto.id
+        }
+      })
+      await this.cloudinary.deleteImage(cat.publicId);
+
+      const updImage = await this.cloudinary.uploadImage(file,"/category");
       const res = await this.prisma.category.update({
         where:{
           id:updateCategoryDto.id
         },
         data:{
           name:updateCategoryDto.name,
-          description:updateCategoryDto.description
+          description:updateCategoryDto.description,
+          gender:updateCategoryDto.gender,
+          imageUrl:updImage.secure_url,
+          publicId:updImage.public_id
         }
       }) 
 
@@ -64,6 +79,22 @@ export class CategoryService {
         return {statusCode:201,message:"Category Updated Successfully",category:res}
       }else{
         return {statusCode:500,message:"Failed To Update"}
+      }      }else{
+        const res = await this.prisma.category.update({
+          where:{
+            id:updateCategoryDto.id
+          },
+          data:{
+            name:updateCategoryDto.name,
+            description:updateCategoryDto.description,
+            gender:updateCategoryDto.gender,
+          }
+        }) 
+        if(res){
+          return {statusCode:201,message:"Category Updated Successfully",category:res}
+        }else{
+          return {statusCode:500,message:"Failed To Update"}
+        }
       }
     } catch (error) {
       throw new InternalServerErrorException(error?.message || "Unexpected Error Occured")
@@ -79,7 +110,7 @@ export class CategoryService {
           }
         }
       })
-
+      
       if(res){
         return {statusCode:201,message:"Category Deleted Successfully"}
       }else{

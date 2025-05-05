@@ -1,4 +1,5 @@
-import { IsString } from "class-validator";
+import { gender } from "@prisma/client";
+import { IsEnum, IsString } from "class-validator";
 
 export class CreateCategoryDto {
 
@@ -7,4 +8,7 @@ export class CreateCategoryDto {
 
     @IsString()
     description:string; 
+
+    @IsEnum(gender)
+    gender:gender;
 }
