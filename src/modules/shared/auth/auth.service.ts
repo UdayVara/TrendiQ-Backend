@@ -11,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AdminSigninDto } from './dto/admin-signin.dto';
 import { UserSignupDto } from './dto/user-signup.dto';
 import { UserSigninDto } from './dto/user-sigin.dto';
+import { UserUpdatePasswordDto } from './dto/user-update-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -106,7 +107,7 @@ export class AuthService {
           email: userSignUpBody.email,
         },
       });
-      console.log(res, 'res');
+      
       if (res) {
         throw new BadRequestException('User With Email Already Exists');
       } else {
@@ -116,6 +117,7 @@ export class AuthService {
             password: hashedPass,
             email: userSignUpBody.email,
             username: userSignUpBody.username,
+            token: userSignUpBody?.fcmToken || null,
           },
         });
 
@@ -176,6 +178,49 @@ export class AuthService {
       }
     } catch (error) {
       console.log('Auth Error : ', error);
+      throw new InternalServerErrorException(
+        error.message || 'Internal Server Error',
+      );
+    }
+  }
+
+  async updatePassword(userId:string, userUpdatePasswordBody: UserUpdatePasswordDto) {
+    try {
+      console.log("User",userId)
+      const res = await this.prisma.user.findFirst({
+        where: {
+          id:userId
+        },
+      });
+      if (!res) {
+        throw new BadRequestException('User With Email Does Not Exists');
+      } else {
+        const chckPass = bcrypt.compareSync(
+          userUpdatePasswordBody.password,
+          res.password,
+        );
+
+        if (chckPass) {
+          const updatedHashedPassword = bcrypt.hashSync(userUpdatePasswordBody.newPassword, 10);
+          await this.prisma.user.update({
+            where:{
+              id:userId
+            },
+            data:{
+              password:updatedHashedPassword
+            }
+          })
+
+          return {
+            statusCode: 201,
+            message: 'Password Updated Successfully',
+          };
+        } else {
+          throw new InternalServerErrorException('Invalid Password');
+        }
+      }
+    } catch (error) {
+      console.log('Update Password Error : ', error);
       throw new InternalServerErrorException(
         error.message || 'Internal Server Error',
       );

@@ -17,7 +17,6 @@ async function bootstrap() {
     .setTitle('TrendiQ')
     .setDescription('The TrendiQ API description')
     .setVersion('1.0')
-    .addTag('TrendiQ')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
