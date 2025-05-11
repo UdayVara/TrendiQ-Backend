@@ -34,7 +34,7 @@ export class ProductService {
         });
       }
       if (query.gender) {
-        AND.push({ gender: query.gender });
+        AND.push({ gender: query.gender || "male" });
       }
       const products = await this.prisma.product.findMany({
         where: {

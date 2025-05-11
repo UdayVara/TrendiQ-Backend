@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UserSignupDto {
   @IsEmail()
@@ -14,6 +14,7 @@ export class UserSignupDto {
   @ApiProperty({type:"string",example:"Test User"})
   username: string;
 
+  @IsOptional()
   @IsString()
   @ApiProperty({type:"string",example:"dsfsdfsdfsdfewrerwec",description:"Optional FCM token for notification in android and ios devices."})
   fcmToken: string;
