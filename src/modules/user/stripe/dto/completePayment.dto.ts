@@ -3,10 +3,11 @@ import { IsNotEmpty, IsString} from "class-validator";
 export class CompletePaymentDto {
     @IsString()
     @IsNotEmpty()
-    intentId: string;
+    transactionId: string;
     
     @IsString()
     @IsNotEmpty()
     shippingId: string;
     
+
 }

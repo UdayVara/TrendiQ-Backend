@@ -22,9 +22,11 @@ export class StripeService {
         },
         include: {
           product_inventory: true,
+          product: true,
         },
       });
 
+     
       const total = cart.reduce((acc, item) => {
         return (
           acc +
@@ -35,15 +37,56 @@ export class StripeService {
                 100)
         );
       }, 0);
-      // Create a PaymentIntent and return the client_secret
-      const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.floor((total - (total * 18) / 100) * 100),
-        currency: 'inr',
-        automatic_payment_methods: { enabled: true },
-        metadata: { userId },  // Let Stripe handle payment methods
-      });
+      console.log("Total",total)
+     const res = await this.prisma.transaction.create({
+      data:{
+        amount:total,
+        status:"pending",
+        paymentStatus:"pending",
+        sessionId:"pending",
+        userId
+      }
+    })
+      const session = await this.stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "payment",
+        currency:"inr",
+        
+        line_items: cart.map(item => {
+          const discountedPrice = Math.floor(
+            item.product_inventory?.price -
+              (item.product_inventory?.discount * item.product_inventory?.price) / 100
+          );
+      
+          return {
+            price_data: {
+              currency: "inr",
+              product_data: {
+                name: item.product.title,
+              },
+              unit_amount: discountedPrice * 100, // amount in paisa
+            },
+            quantity: item.quantity, // ✅ correctly placed here
+          };
+        }),
+        success_url: `${process.env.FRONTEND_URL}/verification?action=success&token=${res.id}`,
+        cancel_url: `${process.env.FRONTEND_URL}/verification?action=cancel&token=${res.id}`,
+      })
+      
+      await this.prisma.transaction.update({
+        where:{id:res.id},
+        data:{sessionId:session.id,status:session.status,paymentStatus:session.payment_status}
+      })
+      // res.json({ url: session.url })
+      // // Create a PaymentIntent and return the client_secret
+      // const paymentIntent = await this.stripe.paymentIntents.create({
+      //   amount: Math.floor((total - (total * 18) / 100) * 100),
+      //   currency: 'inr',
+      //   automatic_payment_methods: { enabled: true },
+      //   metadata: { userId },  // Let Stripe handle payment methods
+      // });
 
-      return { clientSecret: paymentIntent.client_secret };
+      return { url:session.url,statusCode:200,message:"Checkout Session Created Successfully", };
     } catch (error) {
       console.error('Stripe Payment Error:', error);
       throw new Error(error.message);
@@ -57,6 +100,19 @@ export class StripeService {
     userId: string,
   ) {
     try {
+
+      const res = await this.prisma.transaction.findFirst({
+        where:{
+          id:completePaymentDto.transactionId
+        }
+      })
+
+      const stripePayment = await this.stripe.checkout.sessions.retrieve(res.sessionId)
+
+      if(!stripePayment){
+        throw new InternalServerErrorException("Payment Not Confirmed by Stripe")
+      }
+
       const orderId = uuid() + new Date().getDate();
       const cart = await this.prisma.cart.findMany({
         where: {
@@ -68,15 +124,24 @@ export class StripeService {
         },
       });
      
+
       const arr = [];
-      cart.forEach((item) => {
+      cart.forEach(async(item:any) => {
         const discountAmount =
           (item.product_inventory?.discount * item.product_inventory?.price) /
           100;
         const totalAmount =
           item.quantity * (item.product_inventory?.price - discountAmount);
         const gst = (totalAmount * 18) / 100;
-
+        await this.prisma.product_inventory.update({
+          where:{
+            id:item.product_inventory.id,
+          },
+            data:{
+              stock:item.product_inventory.stock-item.quantity
+            }
+          
+        })
         arr.push({
           orderId: orderId,
           amount: totalAmount,
@@ -97,7 +162,16 @@ export class StripeService {
           userId: userId,
         },
       });
-
+      this.prisma.transaction.update({
+        where:{
+          id:completePaymentDto.transactionId,
+          
+        },
+        data:{
+          status:stripePayment.status,
+          paymentStatus:stripePayment.payment_status
+        }
+      })
       return {statusCode:201,message:"Order Placed Successfully"}
     } catch (error) {
       console.log(error)
