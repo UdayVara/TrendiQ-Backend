@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CompletePaymentDto } from './dto/completePayment.dto';
 import { v4 as uuid } from 'uuid';
+import { orderStatus } from '@prisma/client';
 
 @Injectable()
 export class StripeService {
@@ -25,8 +26,24 @@ export class StripeService {
           product: true,
         },
       });
+      const id = uuid();
+      const orderData:any = cart.map((item) => {
+        return {
+            quantity: item.quantity,
+            productId: item.productId,
+            amount: item.product_inventory?.price,
+            color:item.product.color,
+            finalAmount: item.product_inventory?.price - (item.product_inventory?.discount * item.product_inventory?.price) / 100,
+            status: "pending",
+            sizeId: item.product_inventory?.sizeId,
+            discount: item.product_inventory?.discount,
+            shippingAddress: "cd9ee255-8aad-4b98-afcd-79328f48039e",
+            orderId:id,
+            userId,
+          }
+      })
 
-     
+      await this.prisma.order.createMany({data:orderData})
       const total = cart.reduce((acc, item) => {
         return (
           acc +
@@ -44,6 +61,7 @@ export class StripeService {
         status:"pending",
         paymentStatus:"pending",
         sessionId:"pending",
+        orderId:id,
         userId
       }
     })
@@ -104,6 +122,18 @@ export class StripeService {
       const res = await this.prisma.transaction.findFirst({
         where:{
           id:completePaymentDto.transactionId
+        }
+      })
+
+      if(!res){
+        throw new NotFoundException("Transaction Not Found")
+      }
+      await this.prisma.order.updateMany({
+        where:{
+          orderId:res.orderId
+        },
+        data:{
+          status:orderStatus.confirmed
         }
       })
 
@@ -215,6 +245,7 @@ export class StripeService {
         },
        
       });
+      console.log("orders",orders)
 
       const groupedOrders = Object.values(
         orders.reduce((acc, order) => {
