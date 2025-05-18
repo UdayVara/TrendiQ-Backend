@@ -63,9 +63,7 @@ export class AddressService {
           userId: userId,
           isDeleted: false,
         },
-        orderBy: {
-         isDefault:"desc"
-        },
+        
       });
 
       return {

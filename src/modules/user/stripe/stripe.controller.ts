@@ -2,6 +2,7 @@ import { Controller, Post, UseGuards,Request, Body, Get, Param, ParseUUIDPipe } 
 import { StripeService } from './stripe.service';
 import { AuthGuard } from 'src/guards/authguard/adminauth.guard';
 import { CompletePaymentDto } from './dto/completePayment.dto';
+import { CreatePaymentDto } from './dto/createPayment.dto';
 
 @Controller('stripe')
 @UseGuards(AuthGuard)
@@ -9,8 +10,8 @@ export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
   @Post('create-payment-intent')
-  async createPaymentIntent(@Request() req:any) {
-    return this.stripeService.createPaymentIntent(req.user.id);
+  async createPaymentIntent(@Request() req:any,@Body() createPaymentDto:CreatePaymentDto) {
+    return this.stripeService.createPaymentIntent(req.user.id,createPaymentDto);
   }
 
   @Post('complete-payment')

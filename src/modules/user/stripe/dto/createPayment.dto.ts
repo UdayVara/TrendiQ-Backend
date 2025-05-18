@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsString} from "class-validator";
 
-export class CompletePaymentDto {
+export class CreatePaymentDto {
     @IsString()
     @IsNotEmpty()
-    transactionId: string;
+    shippingId: string;
 }

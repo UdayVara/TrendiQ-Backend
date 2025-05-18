@@ -47,8 +47,18 @@ export class CartService {
           createdAt:'desc'
         }
       })
+      let addresses = [];
+      if(res.length > 0){
+        console.log("inside if")
+         addresses = await this.prisma.address.findMany({
+          where: {
+            userId: userId,
+            isDeleted: false, 
+          },
+        })
+      }
 
-      return {statusCode:200,message:"Cart items Fetched Successfully",data:res}
+      return {statusCode:200,message:"Cart items Fetched Successfully",data:res,addresses:addresses}
     } catch (error) {
       throw new InternalServerErrorException(error?.message || "Internal Server Error")
     }

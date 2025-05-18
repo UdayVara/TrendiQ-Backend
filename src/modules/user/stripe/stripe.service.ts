@@ -4,6 +4,7 @@ import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CompletePaymentDto } from './dto/completePayment.dto';
 import { v4 as uuid } from 'uuid';
 import { orderStatus } from '@prisma/client';
+import { CreatePaymentDto } from './dto/createPayment.dto';
 
 @Injectable()
 export class StripeService {
@@ -15,7 +16,7 @@ export class StripeService {
     });
   }
 
-  async createPaymentIntent(userId: string) {
+  async createPaymentIntent(userId: string,createPaymentDto:CreatePaymentDto) {
     try {
       const cart = await this.prisma.cart.findMany({
         where: {
@@ -37,7 +38,7 @@ export class StripeService {
             status: "pending",
             sizeId: item.product_inventory?.sizeId,
             discount: item.product_inventory?.discount,
-            shippingAddress: "cd9ee255-8aad-4b98-afcd-79328f48039e",
+            shippingAddress: createPaymentDto.shippingId,
             orderId:id,
             userId,
           }
@@ -142,57 +143,12 @@ export class StripeService {
       if(!stripePayment){
         throw new InternalServerErrorException("Payment Not Confirmed by Stripe")
       }
-
-      const orderId = uuid() + new Date().getDate();
-      const cart = await this.prisma.cart.findMany({
-        where: {
-          userId: userId,
-        },
-        include: {
-          product_inventory: true,
-          product: true,
-        },
-      });
-     
-
-      const arr = [];
-      cart.forEach(async(item:any) => {
-        const discountAmount =
-          (item.product_inventory?.discount * item.product_inventory?.price) /
-          100;
-        const totalAmount =
-          item.quantity * (item.product_inventory?.price - discountAmount);
-        const gst = (totalAmount * 18) / 100;
-        await this.prisma.product_inventory.update({
-          where:{
-            id:item.product_inventory.id,
-          },
-            data:{
-              stock:item.product_inventory.stock-item.quantity
-            }
-          
-        })
-        arr.push({
-          orderId: orderId,
-          amount: totalAmount,
-          finalAmount: totalAmount + gst,
-          quantity: item.quantity,
-          sizeId:item.product_inventory?.sizeId,
-          color:item.product.color,
-          productId: item.product.id,
-          shippingAddress: completePaymentDto.shippingId,
-          userId: userId,
-        });
-      });
-      await this.prisma.order.createMany({
-        data: arr,
-      });
       await this.prisma.cart.deleteMany({
         where: {
           userId: userId,
         },
       });
-      this.prisma.transaction.update({
+      this.prisma.transaction.updateMany({
         where:{
           id:completePaymentDto.transactionId,
           
