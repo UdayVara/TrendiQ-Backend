@@ -83,8 +83,8 @@ export class StripeService {
               product_data: {
                 name: item.product.title,
               },
-              unit_amount: discountedPrice * 100, // amount in paisa
-            },
+              unit_amount: Math.floor(discountedPrice*1.18) * 100, // amount in paisa           
+               }, 
             quantity: item.quantity, // ✅ correctly placed here
           };
         }),
