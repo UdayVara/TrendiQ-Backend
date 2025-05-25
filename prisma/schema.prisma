@@ -28,6 +28,12 @@ enum orderStatus {
   delivered
 }
 
+enum userSource {
+  web
+  app
+  google
+}
+
 model user {
   id             String           @id() @default(uuid())
   username       String
@@ -35,9 +41,11 @@ model user {
   password       String
   token          String?
   profile        String?
+  source         userSource       @default(web)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @default(now())
   isVerified     Boolean          @default(false)
+  isDeleted      Boolean          @default(false)
   order          order[]
   cart           cart[]
   address        address[]
@@ -205,18 +213,17 @@ model wishlist {
   updatedAt DateTime @default(now())
 }
 
-model transaction{
-  id String   @id() @default(uuid())
-  amount Int
-  userId String
-  sessionId String?
-  status String
+model transaction {
+  id            String   @id() @default(uuid())
+  amount        Int
+  userId        String
+  sessionId     String?
+  status        String
   paymentStatus String
-  orderId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  orderId       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
 }
-
 
 model enviroment {
   id        String   @id() @default(uuid())

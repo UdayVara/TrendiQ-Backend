@@ -7,6 +7,7 @@ import {  UserSignupDto } from './dto/user-signup.dto';
 import { UserSigninDto } from './dto/user-sigin.dto';
 import { AuthGuard } from 'src/guards/authguard/adminauth.guard';
 import { UserUpdatePasswordDto } from './dto/user-update-password.dto';
+import { DeleteUserFromEmail } from './dto/deleteUserByEmail.dto';
 
 
 @Controller()
@@ -129,5 +130,18 @@ export class AuthController {
       throw new UnauthorizedException();
     }
     return this.authService.updatePassword( req.user.id,body);
+  }
+
+  @Post("/user/user-delete")
+  @ApiTags("User Auth")
+  @ApiBody({
+    description:"Payload for User Delete",
+    type:DeleteUserFromEmail
+  })
+  @ApiOperation({
+    summary: 'Delete User by Email, this endpoint is only for development purpose',
+  })
+  async deleteUserByEmail(@Body() deleteUserFromEmail: DeleteUserFromEmail) {
+    return this.authService.deleteUserFromEmail(deleteUserFromEmail);
   }
 }

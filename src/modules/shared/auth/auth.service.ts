@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -12,6 +13,7 @@ import { AdminSigninDto } from './dto/admin-signin.dto';
 import { UserSignupDto } from './dto/user-signup.dto';
 import { UserSigninDto } from './dto/user-sigin.dto';
 import { UserUpdatePasswordDto } from './dto/user-update-password.dto';
+import { DeleteUserFromEmail } from './dto/deleteUserByEmail.dto';
 
 @Injectable()
 export class AuthService {
@@ -105,11 +107,12 @@ export class AuthService {
       const res = await this.prisma.user.findFirst({
         where: {
           email: userSignUpBody.email,
+          isDeleted: false
         },
       });
       
       if (res) {
-        throw new BadRequestException('User With Email Already Exists');
+        throw new ConflictException('User With Email Already Exists');
       } else {
         const hashedPass = bcrypt.hashSync(userSignUpBody.password, 10);
         const newUser = await this.prisma.user.create({
@@ -118,6 +121,7 @@ export class AuthService {
             email: userSignUpBody.email,
             username: userSignUpBody.username,
             token: userSignUpBody?.fcmToken || null,
+            source :userSignUpBody.source,
           },
         });
 
@@ -148,6 +152,7 @@ export class AuthService {
       const res = await this.prisma.user.findFirst({
         where: {
           email: userSigninBody.email,
+          isDeleted: false
         },
       });
       console.log(res);
@@ -166,6 +171,16 @@ export class AuthService {
             username: res.username,
           });
 
+          if(userSigninBody.fcmToken) {
+            await this.prisma.user.update({
+              where: {
+                id: res.id
+              },
+              data: {
+                token: userSigninBody.fcmToken
+              }
+            })
+          }
           return {
             statusCode: 201,
             message: 'User Signin Successfully.',
@@ -255,6 +270,41 @@ export class AuthService {
       throw new InternalServerErrorException(
         error.message || 'Internal Server Error',
       );
+    }
+  }
+
+
+  // !Only for Developement purpose
+  async deleteUserFromEmail(deleteUserFromEmail: DeleteUserFromEmail) {
+    try {
+      if(deleteUserFromEmail.devToken !== process.env.DEV_TOKEN) {
+        throw new UnauthorizedException();  
+      }
+
+      const res = await this.prisma.user.findFirst({
+        where:{
+          email:deleteUserFromEmail.email,
+          isDeleted:false 
+        }
+      })
+      if(res){
+        await this.prisma.user.update({
+          where:{
+            email:deleteUserFromEmail.email,
+            isDeleted:false 
+          },
+          data:{
+            isDeleted:true
+          }
+        })
+      }
+
+      if(!res){
+        throw new BadRequestException("User Does Not Exists")
+      }
+      return {statusCode:201,message:"User Deleted Successfully"}
+    } catch (error) {
+      throw new InternalServerErrorException(error?.message || "Internal Server Error")
     }
   }
 }

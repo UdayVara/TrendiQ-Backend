@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { userSource } from '@prisma/client';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UserSignupDto {
   @IsEmail()
@@ -13,6 +14,16 @@ export class UserSignupDto {
   @IsString()
   @ApiProperty({type:"string",example:"Test User"})
   username: string;
+
+  @ApiProperty({
+    type:"enum",
+    enum:userSource,
+    description: 'User Source for Signin',
+    example: 'web',
+  })
+  @IsNotEmpty()
+  @IsEnum(userSource)
+  source:userSource;
 
   @IsOptional()
   @IsString()
