@@ -57,4 +57,9 @@ export class ProductController {
   async getTrendingProducts(@Query("gender") gender: "male" | "female" | null | undefined) {
       return await this.productService.findTrendingProducts(gender);
   }
+
+  @Get("/home/search-products")
+  async getSearchProducts(@Query("gender") gender: "male" | "female"){
+    return await this.productService.returnAllProductByGender(gender)
+  }
 }

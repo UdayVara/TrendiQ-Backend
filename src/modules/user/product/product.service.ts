@@ -154,4 +154,23 @@ export class ProductService {
       );
     }
   }
+
+  async returnAllProductByGender(gender : "male" | "female" ){
+    try {
+      const res = await this.prisma.product.findMany({
+        where:{
+          gender:gender
+        },
+        select:{
+          id:true,
+          imageUrl:true,
+          title:true
+        }
+      })
+
+      return {statusCode : 200 , message :"Products Fetched Successfully",data:res}
+    } catch (error) {
+      throw new InternalServerErrorException(error.message || "Something Went Wrong")
+    }
+  }
 }
