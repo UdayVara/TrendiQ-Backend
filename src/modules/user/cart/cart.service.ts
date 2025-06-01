@@ -12,6 +12,16 @@ export class CartService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createCartDto: CreateCartDto, userId: string) {
     try {
+
+      const inventory = await this.prisma.product_inventory.findFirst({
+        where: {
+          id: createCartDto.inventoryId,
+        },
+      })
+      
+      if((inventory.stock - createCartDto.quantity) < inventory.minimum_stock){
+        throw new BadRequestException('Not enough stock Available')
+      }
       await this.prisma.cart.create({
         data: {
           quantity: createCartDto.quantity,
