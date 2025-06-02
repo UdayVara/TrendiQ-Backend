@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import Stripe from 'stripe';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CompletePaymentDto } from './dto/completePayment.dto';
@@ -27,6 +27,24 @@ export class StripeService {
           product: true,
         },
       });
+      let isOutOfstock = false;
+    for (const item of cart) {
+      const inventory = await this.prisma.product_inventory.findFirst({
+        where: {
+          id: item.product_inventory.id,
+        },
+      });
+
+      if ((inventory.stock - item.quantity) < inventory.minimum_stock) {
+        console.log("Out of stock");
+        isOutOfstock = true;
+        break; // Stop loop early if out of stock
+      }
+    }
+
+    if (isOutOfstock) {
+      return {statusCode:400,message:"Item Out of Stock"}
+    }
       const id = uuid();
       const orderData:any = cart.map((item) => {
         return {
