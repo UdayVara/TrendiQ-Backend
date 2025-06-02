@@ -37,8 +37,8 @@ export class ProductController {
       data:{},
     }
   })
-  async getSingleProduct(@Param("name") name: string) {
-    return await this.productService.findSingleProduct(name);
+  async getSingleProduct(@Param("name") name: string,@Query("email") email?:string) {
+    return await this.productService.findSingleProduct(name,email || null);
   }
 
   @Get("/trending/home")

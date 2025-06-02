@@ -115,7 +115,7 @@ export class ProductService {
     }
   }
 
-  async findSingleProduct(name: string) {
+  async findSingleProduct(name: string,email?:string) {
     try {
       const res = await this.prisma.product.findFirst({
         where: {
@@ -139,6 +139,21 @@ export class ProductService {
           imageUrl: true,
         },
       });
+      if(email){
+        const cart = await this.prisma.cart.findFirst({
+          where: {
+            productId: name,
+            user:{
+              email:email
+            }
+          },
+        });
+        return {
+          statusCode: 200,
+          message: 'Product Fetched Successfully',
+          data: { ...res, availableColors: findAllProducts,cart:cart },
+        };
+      }
       if (res) {
         return {
           statusCode: 200,
