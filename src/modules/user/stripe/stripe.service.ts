@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {  Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import Stripe from 'stripe';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CompletePaymentDto } from './dto/completePayment.dto';
@@ -149,7 +149,7 @@ export class StripeService {
       }
       await this.prisma.order.updateMany({
         where:{
-          orderId:res.orderId
+          orderId:res.orderId,
         },
         data:{
           status:orderStatus.confirmed
