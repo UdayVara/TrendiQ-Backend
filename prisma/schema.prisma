@@ -22,6 +22,8 @@ enum gender {
 enum orderStatus {
   pending
   confirmed
+  cancelled
+  refunded
   packaed
   shipped
   outForDelivery
@@ -149,6 +151,7 @@ model product_inventory {
   minimum_stock Int
   discount      Int
   cart          cart[]
+  order         order[]
 
   @@unique([productId, sizeId])
 }
@@ -168,24 +171,26 @@ model address {
 }
 
 model order {
-  id              String      @id() @default(uuid())
-  product         product     @relation(fields: [productId], references: [id], onDelete: NoAction)
-  productId       String
-  size            size        @relation(fields: [sizeId], references: [id])
-  sizeId          String
-  color           String
-  orderId         String
-  amount          Int
-  finalAmount     Int
-  discount        Int?
-  quantity        Int
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @default(now())
-  user            user        @relation(fields: [userId], references: [id])
-  userId          String
-  status          orderStatus @default(pending)
-  shippingAddress String
-  address         address     @relation(fields: [shippingAddress], references: [id])
+  id                  String            @id() @default(uuid())
+  product             product           @relation(fields: [productId], references: [id], onDelete: NoAction)
+  productId           String
+  size                size              @relation(fields: [sizeId], references: [id])
+  sizeId              String
+  color               String
+  orderId             String
+  amount              Int
+  finalAmount         Int
+  discount            Int?
+  quantity            Int
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @default(now())
+  user                user              @relation(fields: [userId], references: [id])
+  userId              String
+  product_inventory product_inventory @relation(fields: [product_inventoryId], references: [id])
+  status              orderStatus       @default(pending)
+  shippingAddress     String
+  address             address           @relation(fields: [shippingAddress], references: [id])
+  product_inventoryId String
 }
 
 model cart {
