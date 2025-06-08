@@ -14,7 +14,7 @@ export class ProductService {
     try {
       const AND = [];
       let wishlist = {}
-
+      console.log("querry",query)
       if(userId){
         wishlist =  {
           where:{
@@ -51,8 +51,11 @@ export class ProductService {
         skip: (+query.page - 1) * +query?.size,
         take: +query.size,
       });
-
-      console.log(query.userEmail,"Email")
+const totalCount = await this.prisma.product.count({
+  where: {
+    AND: [...AND],
+  },
+});
       if(query.userEmail){
         const wishlist = await this.prisma.wishlist.findMany({
           where: {
@@ -72,6 +75,7 @@ export class ProductService {
           statusCode: 200,
           message: 'Products Fetched Successfully',
           data: products,
+          totalCount:totalCount,
           wishlist:wishlist
         };
       }
@@ -79,6 +83,7 @@ export class ProductService {
         statusCode: 200,
         message: 'Products Fetched Successfully',
         data: products,
+        totalCount:totalCount,
       };
     } catch (error) {
       console.log(error)
