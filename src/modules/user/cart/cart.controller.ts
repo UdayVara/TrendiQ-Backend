@@ -53,6 +53,20 @@ export class CartController {
   }
 
   
+  @Get("/count")
+  @ApiOperation({
+    summary: 'Get Cart Count',
+    description: 'This API is used to get cart count',
+  })
+  @ApiOkResponse({
+    example: {
+      statusCode: 200,
+      count:0,
+    }
+  })
+  getCartCount(@Request() req) {
+    return this.cartService.getCartCount(req.user.id);
+  }
 
   @Patch()
   @ApiOperation({

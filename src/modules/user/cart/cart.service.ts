@@ -111,6 +111,23 @@ export class CartService {
     }
   }
 
+  async getCartCount(userId:string){
+    try {
+      const res = await this.prisma.cart.findMany({
+        where: {
+          userId,
+        },
+        select:{
+          id:true
+        }
+      });
+      return {statusCode:200,count:res.length};
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error?.message || 'Internal Server Error',
+      );
+    }
+  }
   findOne(id: number) {
     return `This action returns a #${id} cart`;
   }
