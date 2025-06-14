@@ -14,13 +14,17 @@ export class ProductService {
     try {
       const AND = [];
       let wishlist = {}
+      console.log("userId",userId)
       console.log("querry",query)
-      if(userId){
-        wishlist =  {
-          where:{
-            userId:userId
+      
+      if(query.userEmail){
+        wishlist = {
+            where:{
+              user:{
+                email:query.userEmail
+              }
+            }
           }
-        }
       }
       if (query.categoryId) {
         AND.push({ categoryId: query.categoryId });
