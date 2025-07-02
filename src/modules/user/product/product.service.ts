@@ -149,7 +149,7 @@ const totalCount = await this.prisma.product.count({
         },
       });
       if(email){
-        const cart = await this.prisma.cart.findFirst({
+        const cart = await this.prisma.cart.findMany({
           where: {
             productId: name,
             user:{
