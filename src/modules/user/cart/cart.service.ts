@@ -22,7 +22,7 @@ export class CartService {
       if((inventory.stock - createCartDto.quantity) < inventory.minimum_stock){
         throw new BadRequestException('Not enough stock Available')
       }
-      await this.prisma.cart.create({
+      const newCartItem = await this.prisma.cart.create({
         data: {
           quantity: createCartDto.quantity,
           productId: createCartDto.productId,
@@ -33,6 +33,7 @@ export class CartService {
 
       return {
         statusCode: 201,
+        data:newCartItem,
         message: 'Item Added to the Cart',
       };
     } catch (error) {

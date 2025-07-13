@@ -109,7 +109,7 @@ export class ProductService {
       )),
         
       );
-
+      
       return {
         statusCode: 200,
         message: 'Products Fetched Successfully',
@@ -177,6 +177,16 @@ export class ProductService {
               size:true
             }
           },
+          order:{
+            include:{
+              user:true,
+              size:true
+            },
+            take:5,
+            orderBy:{
+              createdAt:"desc"
+            }
+          }
         },
       });
 

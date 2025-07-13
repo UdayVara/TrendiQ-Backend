@@ -53,6 +53,7 @@ model user {
   address        address[]
   wishlist       wishlist[]
   supportTickets supportTickets[]
+  transaction    transaction[]
 }
 
 model admin {
@@ -186,7 +187,7 @@ model order {
   updatedAt           DateTime          @default(now())
   user                user              @relation(fields: [userId], references: [id])
   userId              String
-  product_inventory product_inventory @relation(fields: [product_inventoryId], references: [id])
+  product_inventory   product_inventory @relation(fields: [product_inventoryId], references: [id])
   status              orderStatus       @default(pending)
   shippingAddress     String
   address             address           @relation(fields: [shippingAddress], references: [id])
@@ -228,6 +229,7 @@ model transaction {
   orderId       String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now())
+  user          user     @relation(fields: [userId], references: [id])
 }
 
 model enviroment {
@@ -249,4 +251,14 @@ model supportTickets {
   updatedAt DateTime @default(now())
   userId    String
   user      user     @relation(fields: [userId], references: [id])
+}
+
+
+model orderUpdateHistory{
+  id String @id() @default(uuid())
+  from orderStatus
+  to orderStatus
+  orderId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
