@@ -253,6 +253,9 @@ export class AuthService {
 
       const orderCount = await this.prisma.order.groupBy({
         by: 'orderId',
+        where: {
+          userId: userId
+        },
         _count:{
           orderId:true
         }
