@@ -84,10 +84,17 @@ async findOneByID(orderId:string) {
       }, {} as Record<string, any>)
     );
 
+    const orderUpdateHistory = await this.prisma.orderUpdateHistory.findMany({
+      where: {
+        orderId: orderId
+      }
+    })
+
     return {
       statusCode: 200,
       message: 'Orders Fetched Successfully',
-      data: grouped[0]
+      data: grouped[0],
+      orderUpdateHistory
     };
   } catch (error) {
     throw new InternalServerErrorException(error?.message || 'Internal Server Error');
