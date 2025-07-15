@@ -24,7 +24,7 @@ enum orderStatus {
   confirmed
   cancelled
   refunded
-  packaed
+  packed
   shipped
   outForDelivery
   delivered
