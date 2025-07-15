@@ -157,10 +157,18 @@ const totalCount = await this.prisma.product.count({
             }
           },
         });
+        const wishlist = await this.prisma.wishlist.findMany({
+          where: {
+            productId: name,
+            user:{
+              email:email
+            }
+          },
+        })
         return {
           statusCode: 200,
           message: 'Product Fetched Successfully',
-          data: { ...res, availableColors: findAllProducts,cart:cart },
+          data: { ...res, availableColors: findAllProducts,cart:cart,wishlist:wishlist },
         };
       }
       if (res) {
