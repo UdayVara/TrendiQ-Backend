@@ -17,6 +17,7 @@ import {CategoryModule as UserCategoryModule} from "./modules/user/category/cate
 import { BannerModule } from './modules/admin/banner/banner.module';
 import { SupportModule } from './modules/shared/support/support.module';
 import { OrderModule } from './modules/admin/order/order.module';
+import { ConfigsModule } from './modules/user/configs/configs.module';
 @Module({
   imports: [
     CommonModule,
@@ -33,6 +34,7 @@ import { OrderModule } from './modules/admin/order/order.module';
     BannerModule,
     SupportModule,
     OrderModule,
+    ConfigsModule,
     RouterModule.register([
       {
         path: 'admin',
@@ -99,6 +101,13 @@ import { OrderModule } from './modules/admin/order/order.module';
             module:SupportModule
           }
         ]
+      },
+      {
+        path:"/private-res",
+
+            module:ConfigsModule
+        
+        
       }
     ]),
    
