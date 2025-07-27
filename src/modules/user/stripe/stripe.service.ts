@@ -163,6 +163,129 @@ export class StripeService {
       throw new Error(error.message);
     }
   }
+async createPaymentIntentMobile(
+  userId: string,
+  createPaymentDto: CreatePaymentDto,
+) {
+  try {
+    const cart = await this.prisma.cart.findMany({
+      where: {
+        userId: userId,
+      },
+      include: {
+        product_inventory: true,
+        product: true,
+      },
+    });
+
+    let isOutOfstock = false;
+    for (const item of cart) {
+      const inventory = await this.prisma.product_inventory.findFirst({
+        where: {
+          id: item.product_inventory.id,
+        },
+      });
+
+      if (inventory.stock - item.quantity < inventory.minimum_stock) {
+        console.log('Out of stock');
+        isOutOfstock = true;
+        break;
+      }
+    }
+
+    if (isOutOfstock) {
+      return { statusCode: 400, message: 'Item Out of Stock' };
+    }
+
+    const id = uuid();
+    const orderData: any = await Promise.all<any>(
+      cart.map(async (item) => {
+        await this.prisma.product_inventory.update({
+          where: {
+            id: item.product_inventory.id,
+          },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
+        });
+        return {
+          quantity: item.quantity,
+          productId: item.product.id,
+          amount: item.product_inventory?.price,
+          color: item.product.color,
+          product_inventoryId: item.product_inventory.id,
+          finalAmount:
+            item.product_inventory?.price -
+            (item.product_inventory?.discount *
+              item.product_inventory?.price) /
+              100,
+          status: 'pending',
+          sizeId: item.product_inventory?.sizeId,
+          discount: item.product_inventory?.discount,
+          shippingAddress: createPaymentDto.shippingId,
+          orderId: id,
+          userId,
+        };
+      }),
+    );
+
+    await this.prisma.order.createMany({ data: orderData });
+
+    const total = cart.reduce((acc, item) => {
+      const discountedPrice =
+        item.product_inventory?.price -
+        (item.product_inventory?.discount * item.product_inventory?.price) / 100;
+
+      return acc + item.quantity * discountedPrice;
+    }, 0);
+
+    const taxAppliedTotal = Math.floor(total * 1.18); // apply 18% GST
+
+    const res = await this.prisma.transaction.create({
+      data: {
+        amount: taxAppliedTotal,
+        status: 'pending',
+        paymentStatus: 'pending',
+        sessionId: 'pending',
+        orderId: id,
+        userId,
+      },
+    });
+
+    // ✅ Stripe Payment Intent instead of Checkout Session
+    const paymentIntent = await this.stripe.paymentIntents.create({
+      amount: taxAppliedTotal * 100, // amount in paisa
+      currency: 'inr',
+      metadata: {
+        userId,
+        orderId: id,
+        transactionId: res.id,
+      },
+      automatic_payment_methods: { enabled: true },
+    });
+
+    await this.prisma.transaction.update({
+      where: { id: res.id },
+      data: {
+        sessionId: paymentIntent.id,
+        status: paymentIntent.status,
+        paymentStatus: paymentIntent.status,
+      },
+    });
+
+    return {
+      clientSecret: paymentIntent.client_secret,
+      statusCode: 200,
+      message: 'PaymentIntent Created Successfully',
+    };
+  } catch (error) {
+    console.error('Stripe Payment Error:', error);
+    throw new Error(error.message);
+  }
+}
+
 
   async completePayment(
     completePaymentDto: CompletePaymentDto,
@@ -257,6 +380,101 @@ export class StripeService {
       throw new InternalServerErrorException('Order Failed, Please Try Again');
     }
   }
+
+  async completePaymentMobile(
+  completePaymentDto: CompletePaymentDto,
+  userId: string,
+) {
+  try {
+    const res = await this.prisma.transaction.findFirst({
+      where: {
+        id: completePaymentDto.transactionId,
+      },
+    });
+
+    if (!res) {
+      throw new NotFoundException('Transaction Not Found');
+    }
+
+    const orderItems = await this.prisma.order.findMany({
+      where: {
+        orderId: res.orderId,
+      },
+      include: {
+        product_inventory: true,
+      },
+    });
+
+    if (!orderItems || orderItems.length === 0) {
+      throw new NotFoundException('Order Not Found');
+    }
+
+    // ✅ Retrieve PaymentIntent using sessionId (which is now paymentIntent.id)
+    const paymentIntent = await this.stripe.paymentIntents.retrieve(
+      res.sessionId,
+    );
+
+    if (!paymentIntent) {
+      throw new InternalServerErrorException('Payment not found on Stripe');
+    }
+
+    for (const item of orderItems) {
+      const remainingStock = item.product_inventory?.stock - item.quantity;
+      const minStock = item.product_inventory?.minimum_stock ?? 0;
+
+      if (remainingStock <= minStock) {
+        await this.prisma.order.updateMany({
+          where: {
+            orderId: res.orderId,
+          },
+          data: {
+            status: orderStatus.refunded,
+          },
+        });
+
+        await this.stripe.refunds.create({
+          payment_intent: paymentIntent.id,
+        });
+
+        throw new InternalServerErrorException(
+          'Item out of stock, refund initiated',
+        );
+      }
+    }
+
+    await this.prisma.order.updateMany({
+      where: {
+        orderId: res.orderId,
+      },
+      data: {
+        status: orderStatus.confirmed,
+      },
+    });
+
+    // ✅ Clean up cart
+    await this.prisma.cart.deleteMany({
+      where: {
+        userId: userId,
+      },
+    });
+
+    // ✅ Update transaction with paymentIntent status
+    await this.prisma.transaction.updateMany({
+      where: {
+        id: completePaymentDto.transactionId,
+      },
+      data: {
+        status: paymentIntent.status,
+        paymentStatus: paymentIntent.status,
+      },
+    });
+
+    return { statusCode: 201, message: 'Order Placed Successfully' };
+  } catch (error) {
+    console.error(error);
+    throw new InternalServerErrorException('Order Failed, Please Try Again');
+  }
+}
 
   async myOrders(userId: string) {
     try {
