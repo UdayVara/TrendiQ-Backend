@@ -266,7 +266,7 @@ async createPaymentIntentMobile(
       automatic_payment_methods: { enabled: true },
     });
 
-    await this.prisma.transaction.update({
+    const transaction = await this.prisma.transaction.update({
       where: { id: res.id },
       data: {
         sessionId: paymentIntent.id,
@@ -279,6 +279,7 @@ async createPaymentIntentMobile(
       clientSecret: paymentIntent.client_secret,
       statusCode: 200,
       message: 'PaymentIntent Created Successfully',
+      transactionId:transaction.id
     };
   } catch (error) {
     console.error('Stripe Payment Error:', error);
